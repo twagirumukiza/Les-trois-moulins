@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="wood">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les Trois Moulins</title>
+    <style>
+        :root {
+            --bg-color: #a67c52;
+            --surface-color: #fbf9f5;
+            --text-color: #2c3e50;
+            --accent-color: #b85d18;
+            --accent-hover: #9c4c11;
+            --board-bg: #b08457;
+            --line-color: #111111;
+            --node-color: transparent;
+            --node-stroke: #111111;
+            --p1-color: #e74c3c;
+            --p2-color: #3498db;
+            --highlight: #27ae60;
+            --valid-move: #a9dfbf;
+            --card-bg: #ffffff;
+            --border-color: #d4b28c;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f0f2f5;
+            --surface-color: #ffffff;
+            --text-color: #2c3e50;
+            --accent-color: #e67e22;
+            --accent-hover: #d35400;
+            --board-bg: #e6ceb2;
+            --line-color: #333333;
+            --node-color: transparent;
+            --node-stroke: #333333;
+            --p1-color: #e74c3c;
+            --p2-color: #3498db;
+            --highlight: #2ecc71;
+            --valid-move: #a9dfbf;
+            --card-bg: #ffffff;
+            --border-color: #eaeaea;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #ff9800;
+            --accent-hover: #f57c00;
+            --board-bg: #2d241e;
+            --line-color: #e0e0e0;
+            --node-color: transparent;
+            --node-stroke: #e0e0e0;
+            --p1-color: #ff5252;
+            --p2-color: #448aff;
+            --highlight: #69f0ae;
+            --valid-move: #2e7d32;
+            --card-bg: #2a2a2a;
+            --border-color: #333333;
+        }
+
+        [data-theme="wood"] {
+            --bg-color: #a67c52;
+            --surface-color: #fbf9f5;
+            --text-color: #2c3e50;
+            --accent-color: #b85d18;
+            --accent-hover: #9c4c11;
+            --board-bg: #b08457;
+            --line-color: #111111;
+            --node-color: transparent;
+            --node-stroke: #111111;
+            --p1-color: #e74c3c;
+            --p2-color: #3498db;
+            --highlight: #27ae60;
+            --valid-move: #a9dfbf;
+            --card-bg: #ffffff;
+            --border-color: #d4b28c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 14px;
+            color: var(--text-color);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .menu-btn, .btn {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn:hover, .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .menu-btn:active, .btn:active {
+            transform: scale(0.98);
+        }
+
+        .settings-group {
+            margin: 12px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .settings-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .settings-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 8px;
+        }
+
+        .player-score {
+            flex: 1;
+            padding: 10px 8px;
+            border-radius: 10px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .player-score.active {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: rgba(211, 84, 0, 0.05);
+        }
+
+        .status-message {
+            margin: 6px 0 12px 0;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+            min-height: 28px;
+            color: var(--accent-color);
+        }
+
+        .board-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            background-color: var(--board-bg);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 14px;
+            border: 3px solid rgba(0,0,0,0.15);
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .board-line {
+            stroke: var(--line-color);
+            stroke-width: 5;
+            stroke-linecap: round;
+        }
+
+        .node-hit-area {
+            cursor: pointer;
+            fill: transparent;
+        }
+
+        .node {
+            fill: var(--node-color);
+            stroke: var(--node-stroke);
+            stroke-width: 3;
+            transition: fill 0.2s, stroke 0.2s;
+        }
+
+        .node.highlight {
+            fill: var(--highlight);
+            stroke: var(--highlight);
+            stroke-width: 4;
+            opacity: 0.9;
+            animation: pulse 1s infinite;
+        }
+
+        .node.valid-move {
+            fill: var(--valid-move);
+            stroke: var(--highlight);
+            stroke-width: 4;
+            opacity: 0.85;
+            animation: pulse 1s infinite;
+        }
+
+        .piece {
+            cursor: pointer;
+            stroke: var(--line-color);
+            stroke-width: 3.5;
+        }
+
+        .piece.p1 {
+            fill: var(--p1-color);
+        }
+
+        .piece.p2 {
+            fill: var(--p2-color);
+        }
+
+        .piece.selected {
+            stroke: var(--highlight);
+            stroke-width: 6;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .controls-row button {
+            flex: 1;
+            max-width: none;
+            padding: 12px;
+            font-size: 1rem;
+            margin: 0;
+            border-radius: 10px;
+        }
+
+        .rules-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            text-align: left;
+            width: 100%;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+
+        .rules-content h3 {
+            margin-top: 12px;
+            margin-bottom: 4px;
+            color: var(--accent-color);
+            font-size: 1rem;
+        }
+
+        .rules-content ul {
+            padding-left: 20px;
+            margin-top: 4px;
+        }
+
+        .footer {
+            margin-top: 18px;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+            text-align: center;
+            text-transform: lowercase;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Les Trois Moulins</h1>
+
+        <!-- MENU PRINCIPAL -->
+        <div id="main-menu" class="screen active">
+            <button class="menu-btn" onclick="playSound('click'); showScreen('mode-menu')">Jouer</button>
+            <button class="menu-btn" onclick="playSound('click'); showScreen('rules-screen')">Règles du jeu</button>
+            <button class="menu-btn" onclick="playSound('click'); showScreen('settings-menu')">Paramètres</button>
+        </div>
+
+        <!-- MENU MODE DE JEU -->
+        <div id="mode-menu" class="screen">
+            <button class="menu-btn" onclick="playSound('click'); startGame('ai')">Solo contre l'IA</button>
+            <button class="menu-btn" onclick="playSound('click'); startGame('local')">Multijoueur (2 Joueurs)</button>
+            <button class="menu-btn" style="background:#2980b9;" onclick="playSound('click'); alert('Le mode multijoueur en ligne via Firebase sera configuré prochainement !')">Multijoueur en ligne (Firebase)</button>
+            <button class="menu-btn" style="background:#7f8c8d; margin-top: 15px;" onclick="playSound('click'); showScreen('main-menu')">Retour</button>
+        </div>
+
+        <!-- ÉCRAN RÈGLES DU JEU -->
+        <div id="rules-screen" class="screen">
+            <div class="rules-content">
+                <h3>Objectif du jeu</h3>
+                <p>Le premier joueur qui parvient à aligner <b>trois pions</b> sur le même axe (former un moulin) remporte la partie immédiatement !</p>
+                
+                <h3>Phase 1 : Pose des pions</h3>
+                <p>À tour de rôle, chaque joueur place ses 3 pions sur une intersection vide du plateau.</p>
+
+                <h3>Phase 2 : Déplacement le long des lignes</h3>
+                <p>Une fois tous les pions posés, les joueurs déplacent un pion par tour vers une intersection adjacente libre en suivant les lignes du plateau.</p>
+                <ul>
+                    <li><b>Interdiction de sauter :</b> Les pions ne peuvent pas sauter par-dessus d'autres pions. Ils doivent se déplacer de proche en proche le long des arêtes tracées.</li>
+                    <li><b>Indication des mouvements :</b> Lorsque vous touchez l'un de vos pions, seuls les emplacements adjacents libres s'illuminent en vert pâle.</li>
+                </ul>
+            </div>
+            <button class="menu-btn" style="background:#7f8c8d;" onclick="playSound('click'); showScreen('main-menu')">Retour au menu</button>
+        </div>
+
+        <!-- MENU PARAMÈTRES -->
+        <div id="settings-menu" class="screen">
+            <div class="settings-group">
+                <label for="setting-board">Type de Plateau</label>
+                <select id="setting-board" onchange="updateSetting('boardType', this.value)">
+                    <option value="standard">Standard (Sans diagonales)</option>
+                    <option value="diagonal" selected>Diagonales et Point Central</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label for="setting-theme">Fond d'écran / Thème</label>
+                <select id="setting-theme" onchange="updateTheme(this.value)">
+                    <option value="wood" selected>Bois Classique</option>
+                    <option value="light">Clair Moderne</option>
+                    <option value="dark">Sombre</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label for="setting-diff">Difficulté de l'IA</label>
+                <select id="setting-diff" onchange="updateSetting('difficulty', this.value)">
+                    <option value="easy">Facile</option>
+                    <option value="medium" selected>Moyen</option>
+                    <option value="hard">Difficile</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label for="setting-music">Effets Sonores</label>
+                <select id="setting-music" onchange="updateSetting('music', this.value)">
+                    <option value="on" selected>Activé</option>
+                    <option value="off">Désactivé</option>
+                </select>
+            </div>
+
+            <button class="menu-btn" style="margin-top: 15px; background:#7f8c8d;" onclick="playSound('click'); showScreen('main-menu')">Retour</button>
+        </div>
+
+        <!-- ÉCRAN DE JEU -->
+        <div id="game-screen" class="screen">
+            <div class="hud">
+                <div id="hud-p1" class="player-score">J1 : <span id="p1-reserve">3</span> rés. | <span id="p1-board">0</span> plat.</div>
+                <div id="hud-p2" class="player-score">J2 : <span id="p2-reserve">3</span> rés. | <span id="p2-board">0</span> plat.</div>
+            </div>
+
+            <div id="status-message" class="status-message">Phase 1 : Posez vos pions</div>
+
+            <div class="board-container">
+                <svg id="board-svg" viewBox="0 0 600 600" onclick="handleBoardClick(event)">
+                    <!-- Généré dynamiquement -->
+                </svg>
+            </div>
+
+            <div class="controls-row">
+                <button class="btn" style="background:#e74c3c;" onclick="playSound('click'); showScreen('main-menu')">Quitter</button>
+                <button class="btn" style="background:#7f8c8d;" onclick="playSound('click'); resetGame()">Recommencer</button>
+            </div>
+        </div>
+
+        <div class="footer">by twagirumukiza</div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+
+        function playSound(type) {
+            if (settings.music !== 'on') return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(500, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'place') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(550, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'move') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'mill') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.12);
+                    osc.frequency.setValueAtTime(659.25, now + 0.24);
+                    osc.frequency.setValueAtTime(880, now + 0.36);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+        }
+
+        const settings = {
+            difficulty: 'medium',
+            music: 'on',
+            theme: 'wood',
+            boardType: 'diagonal'
+        };
+
+        const boardConfigs = {
+            standard: {
+                numNodes: 24,
+                coords: [
+                    {x: 50, y: 50},   {x: 300, y: 50},  {x: 550, y: 50},
+                    {x: 550, y: 300}, {x: 550, y: 550}, {x: 300, y: 550},
+                    {x: 50, y: 550},  {x: 50, y: 300},
+                    {x: 125, y: 125}, {x: 300, y: 125}, {x: 475, y: 125},
+                    {x: 475, y: 300}, {x: 475, y: 475}, {x: 300, y: 475},
+                    {x: 125, y: 475}, {x: 125, y: 300},
+                    {x: 200, y: 200}, {x: 300, y: 200}, {x: 400, y: 200},
+                    {x: 400, y: 300}, {x: 400, y: 400}, {x: 300, y: 400},
+                    {x: 200, y: 400}, {x: 200, y: 300}
+                ],
+                adjacencies: {
+                    0: [1, 7], 1: [0, 2, 9], 2: [1, 3], 3: [2, 4, 11], 4: [3, 5], 5: [4, 6, 13], 6: [5, 7], 7: [0, 6, 15],
+                    8: [9, 15], 9: [8, 10, 1, 17], 10: [9, 11], 11: [10, 12, 3, 19], 12: [11, 13], 13: [12, 14, 5, 21], 14: [13, 15], 15: [8, 14, 7, 23],
+                    16: [17, 23], 17: [16, 18, 9], 18: [17, 19], 19: [18, 20, 11], 20: [19, 21], 21: [20, 22, 13], 22: [21, 23], 23: [22, 16, 15]
+                },
+                mills: [
+                    [0, 1, 2], [2, 3, 4], [4, 5, 6], [6, 7, 0],
+                    [8, 9, 10], [10, 11, 12], [12, 13, 14], [14, 15, 8],
+                    [16, 17, 18], [18, 19, 20], [20, 21, 22], [22, 23, 16],
+                    [1, 9, 17], [3, 11, 19], [5, 13, 21], [7, 15, 23]
+                ],
+                lines: [
+                    [0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0],
+                    [8,9], [9,10], [10,11], [11,12], [12,13], [13,14], [14,15], [15,8],
+                    [16,17], [17,18], [18,19], [19,20], [20,21], [21,22], [22,23], [23,16],
+                    [1,9], [9,17], [3,11], [11,19], [5,13], [13,21], [7,15], [15,23]
+                ]
+            },
+            diagonal: {
+                numNodes: 25,
+                coords: [
+                    {x: 50, y: 50},   {x: 300, y: 50},  {x: 550, y: 50},
+                    {x: 550, y: 300}, {x: 550, y: 550}, {x: 300, y: 550},
+                    {x: 50, y: 550},  {x: 50, y: 300},
+                    {x: 125, y: 125}, {x: 300, y: 125}, {x: 475, y: 125},
+                    {x: 475, y: 300}, {x: 475, y: 475}, {x: 300, y: 475},
+                    {x: 125, y: 475}, {x: 125, y: 300},
+                    {x: 200, y: 200}, {x: 300, y: 200}, {x: 400, y: 200},
+                    {x: 400, y: 300}, {x: 400, y: 400}, {x: 300, y: 400},
+                    {x: 200, y: 400}, {x: 200, y: 300},
+                    {x: 300, y: 300} // Point central (Index 24)
+                ],
+                adjacencies: {
+                    0: [1, 7, 8], 1: [0, 2, 9], 2: [1, 3, 10], 3: [2, 4, 11], 4: [3, 5, 12], 5: [4, 6, 13], 6: [5, 7, 14], 7: [0, 6, 15],
+                    8: [9, 15, 0, 16], 9: [8, 10, 1, 17], 10: [9, 11, 2, 18], 11: [10, 12, 3, 19], 12: [11, 13, 4, 20], 13: [12, 14, 5, 21], 14: [13, 15, 6, 22], 15: [8, 14, 7, 23],
+                    16: [17, 23, 8], 17: [16, 18, 9, 24], 18: [17, 19, 10], 19: [18, 20, 11, 24], 20: [19, 21, 12], 21: [20, 22, 13, 24], 22: [21, 23, 14], 23: [22, 16, 15, 24],
+                    24: [17, 19, 21, 23]
+                },
+                mills: [
+                    [0, 1, 2], [2, 3, 4], [4, 5, 6], [6, 7, 0],
+                    [8, 9, 10], [10, 11, 12], [12, 13, 14], [14, 15, 8],
+                    [16, 17, 18], [18, 19, 20], [20, 21, 22], [22, 23, 16],
+                    [1, 9, 17], [9, 17, 24], [17, 24, 21], [24, 21, 13], [21, 13, 5],
+                    [7, 15, 23], [15, 23, 24], [23, 24, 19], [24, 19, 11], [19, 11, 3],
+                    [0, 8, 16], [8, 16, 24], [16, 24, 20], [24, 20, 12], [20, 12, 4],
+                    [2, 10, 18], [10, 18, 24], [18, 24, 22], [24, 22, 14], [22, 14, 6]
+                ],
+                lines: [
+                    [0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0],
+                    [8,9], [9,10], [10,11], [11,12], [12,13], [13,14], [14,15], [15,8],
+                    [16,17], [17,18], [18,19], [19,20], [20,21], [21,22], [22,23], [23,16],
+                    [1,9], [9,17], [17,24], [24,21], [21,13], [13,5],
+                    [7,15], [15,23], [23,24], [24,19], [19,11], [11,3],
+                    [0,8], [8,16], [16,24], [24,20], [20,12], [12,4],
+                    [2,10], [10,18], [18,24], [24,22], [22,14], [14,6]
+                ]
+            }
+        };
+
+        function updateTheme(themeName) {
+            playSound('click');
+            settings.theme = themeName;
+            document.documentElement.setAttribute('data-theme', themeName);
+        }
+
+        let gameState = {
+            mode: 'local',
+            turn: 1,
+            phase: 1,
+            maxPieces: 3,
+            p1Reserve: 3,
+            p2Reserve: 3,
+            p1OnBoard: 0,
+            p2OnBoard: 0,
+            selectedNode: null,
+            board: [],
+            gameOver: false,
+            aiThinking: false
+        };
+
+        function getCurrentConfig() {
+            return boardConfigs[settings.boardType];
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function updateSetting(key, value) {
+            playSound('click');
+            settings[key] = value;
+        }
+
+        function startGame(mode) {
+            const config = getCurrentConfig();
+            gameState.mode = mode;
+            gameState.p1Reserve = 3;
+            gameState.p2Reserve = 3;
+            gameState.p1OnBoard = 0;
+            gameState.p2OnBoard = 0;
+            gameState.board = Array(config.numNodes).fill(0);
+            gameState.turn = 1;
+            gameState.phase = 1;
+            gameState.selectedNode = null;
+            gameState.gameOver = false;
+            gameState.aiThinking = false;
+
+            showScreen('game-screen');
+            renderBoard();
+            updateHUD();
+        }
+
+        function resetGame() {
+            startGame(gameState.mode);
+        }
+
+        function renderBoard() {
+            const config = getCurrentConfig();
+            const svg = document.getElementById('board-svg');
+            let html = '';
+
+            config.lines.forEach(l => {
+                html += `<line x1="${config.coords[l[0]].x}" y1="${config.coords[l[0]].y}" x2="${config.coords[l[1]].x}" y2="${config.coords[l[1]].y}" class="board-line" />`;
+            });
+
+            let validMoves = [];
+            if (gameState.phase === 2 && gameState.selectedNode !== null && gameState.turn === 1 && !gameState.gameOver) {
+                const adj = config.adjacencies[gameState.selectedNode] || [];
+                validMoves = adj.filter(idx => gameState.board[idx] === 0);
+            }
+
+            for (let idx = 0; idx < config.numNodes; idx++) {
+                const coord = config.coords[idx];
+                let nodeClass = '';
+                if (gameState.selectedNode === idx) {
+                    nodeClass = 'highlight';
+                } else if (validMoves.includes(idx)) {
+                    nodeClass = 'valid-move';
+                }
+
+                html += `<circle cx="${coord.x}" cy="${coord.y}" r="28" class="node-hit-area" data-index="${idx}" />`;
+                html += `<circle cx="${coord.x}" cy="${coord.y}" r="8" class="node ${nodeClass}" data-index="${idx}" pointer-events="none" />`;
+
+                if (gameState.board[idx] === 1) {
+                    html += `<circle cx="${coord.x}" cy="${coord.y}" r="27" class="piece p1 ${gameState.selectedNode === idx ? 'selected' : ''}" data-index="${idx}" pointer-events="none" />`;
+                } else if (gameState.board[idx] === 2) {
+                    html += `<circle cx="${coord.x}" cy="${coord.y}" r="27" class="piece p2 ${gameState.selectedNode === idx ? 'selected' : ''}" data-index="${idx}" pointer-events="none" />`;
+                }
+            }
+
+            svg.innerHTML = html;
+        }
+
+        function updateHUD() {
+            document.getElementById('p1-reserve').innerText = gameState.p1Reserve;
+            document.getElementById('p1-board').innerText = gameState.p1OnBoard;
+            document.getElementById('p2-reserve').innerText = gameState.p2Reserve;
+            document.getElementById('p2-board').innerText = gameState.p2OnBoard;
+
+            document.getElementById('hud-p1').classList.toggle('active', gameState.turn === 1);
+            document.getElementById('hud-p2').classList.toggle('active', gameState.turn === 2);
+
+            const msg = document.getElementById('status-message');
+            if (gameState.gameOver) {
+                return;
+            }
+
+            if (gameState.aiThinking) {
+                msg.innerText = `L'IA réfléchit...`;
+            } else if (gameState.phase === 1) {
+                msg.innerText = `Phase 1 - Tour du Joueur ${gameState.turn} : Posez un pion`;
+            } else {
+                msg.innerText = `Phase 2 - Tour du Joueur ${gameState.turn} : Déplacez un pion`;
+            }
+        }
+
+        function handleBoardClick(event) {
+            if (gameState.gameOver || gameState.aiThinking) return;
+            const target = event.target.closest('[data-index]');
+            if (!target) return;
+            const idx = parseInt(target.getAttribute('data-index'));
+
+            if (gameState.phase === 1) {
+                handlePhase1(idx);
+            } else {
+                handlePhase2(idx);
+            }
+        }
+
+        function checkMill(idx, player) {
+            const config = getCurrentConfig();
+            return config.mills.some(mill => {
+                if (mill.includes(idx)) {
+                    return mill.every(nodeIndex => gameState.board[nodeIndex] === player);
+                }
+                return false;
+            });
+        }
+
+        function handlePhase1(idx) {
+            const reserveKey = gameState.turn === 1 ? 'p1Reserve' : 'p2Reserve';
+            const boardKey = gameState.turn === 1 ? 'p1OnBoard' : 'p2OnBoard';
+
+            if (gameState.board[idx] === 0 && gameState[reserveKey] > 0) {
+                gameState.board[idx] = gameState.turn;
+                gameState[reserveKey]--;
+                gameState[boardKey]++;
+                playSound('place');
+
+                if (checkMill(idx, gameState.turn)) {
+                    gameState.gameOver = true;
+                    playSound('win');
+                    renderBoard();
+                    updateHUD();
+                    document.getElementById('status-message').innerText = `🎉 Le Joueur ${gameState.turn} a gagné en alignant 3 pions !`;
+                    return;
+                }
+
+                nextTurn();
+                checkPhaseTransition();
+                renderBoard();
+                updateHUD();
+
+                if (!gameState.gameOver && gameState.mode === 'ai' && gameState.turn === 2) {
+                    triggerAiTurn();
+                }
+            }
+        }
+
+        function handlePhase2(idx) {
+            const player = gameState.turn;
+            const config = getCurrentConfig();
+
+            if (gameState.selectedNode === null) {
+                if (gameState.board[idx] === player) {
+                    const adj = config.adjacencies[idx] || [];
+                    const hasMoves = adj.some(n => gameState.board[n] === 0);
+                    if (hasMoves) {
+                        gameState.selectedNode = idx;
+                        playSound('click');
+                        renderBoard();
+                    }
+                }
+            } else {
+                const adj = config.adjacencies[gameState.selectedNode] || [];
+                if (adj.includes(idx) && gameState.board[idx] === 0) {
+                    gameState.board[gameState.selectedNode] = 0;
+                    gameState.board[idx] = player;
+                    gameState.selectedNode = null;
+                    playSound('move');
+
+                    if (checkMill(idx, player)) {
+                        gameState.gameOver = true;
+                        playSound('win');
+                        renderBoard();
+                        updateHUD();
+                        document.getElementById('status-message').innerText = `🎉 Le Joueur ${player} a gagné en alignant 3 pions !`;
+                        return;
+                    }
+
+                    nextTurn();
+                    renderBoard();
+                    updateHUD();
+
+                    if (!gameState.gameOver && gameState.mode === 'ai' && gameState.turn === 2) {
+                        triggerAiTurn();
+                    }
+                } else if (gameState.board[idx] === player) {
+                    const nextAdj = config.adjacencies[idx] || [];
+                    if (nextAdj.some(n => gameState.board[n] === 0)) {
+                        gameState.selectedNode = idx;
+                        playSound('click');
+                        renderBoard();
+                    }
+                }
+            }
+        }
+
+        function nextTurn() {
+            gameState.turn = gameState.turn === 1 ? 2 : 1;
+        }
+
+        function checkPhaseTransition() {
+            if (gameState.p1Reserve === 0 && gameState.p2Reserve === 0) {
+                gameState.phase = 2;
+            }
+        }
+
+        function triggerAiTurn() {
+            gameState.aiThinking = true;
+            updateHUD();
+            renderBoard();
+
+            setTimeout(() => {
+                aiMove();
+                gameState.aiThinking = false;
+                updateHUD();
+                renderBoard();
+            }, 600);
+        }
+
+        function aiMove() {
+            if (gameState.gameOver) return;
+            const config = getCurrentConfig();
+
+            if (gameState.phase === 1) {
+                let emptyNodes = [];
+                for(let i=0; i<config.numNodes; i++) {
+                    if(gameState.board[i] === 0) emptyNodes.push(i);
+                }
+                if(emptyNodes.length === 0) return;
+
+                let moveMade = false;
+                for(let idx of emptyNodes) {
+                    gameState.board[idx] = 2;
+                    if(checkMill(idx, 2)) {
+                        gameState.p2Reserve--;
+                        gameState.p2OnBoard++;
+                        playSound('place');
+                        gameState.gameOver = true;
+                        playSound('win');
+                        moveMade = true;
+                        document.getElementById('status-message').innerText = `🎉 L'IA a gagné en alignant 3 pions !`;
+                        break;
+                    }
+                    gameState.board[idx] = 0;
+                }
+
+                if(!moveMade) {
+                    for(let idx of emptyNodes) {
+                        gameState.board[idx] = 1;
+                        if(checkMill(idx, 1)) {
+                            gameState.board[idx] = 2;
+                            gameState.p2Reserve--;
+                            gameState.p2OnBoard++;
+                            playSound('place');
+                            moveMade = true;
+                            break;
+                        }
+                        gameState.board[idx] = 0;
+                    }
+                }
+
+                if(!moveMade) {
+                    let preferred = emptyNodes;
+                    if(config.numNodes === 25 && gameState.board[24] === 0) {
+                        preferred = [24, ...emptyNodes.filter(i => i !== 24)];
+                    }
+                    let chosen = preferred[Math.floor(Math.random() * preferred.length)];
+                    gameState.board[chosen] = 2;
+                    gameState.p2Reserve--;
+                    gameState.p2OnBoard++;
+                    playSound('place');
+                    if(checkMill(chosen, 2)) {
+                        gameState.gameOver = true;
+                        playSound('win');
+                        document.getElementById('status-message').innerText = `🎉 L'IA a gagné en alignant 3 pions !`;
+                    }
+                }
+
+                if(!gameState.gameOver) {
+                    nextTurn();
+                    checkPhaseTransition();
+                }
+
+            } else {
+                let aiPieces = [];
+                for(let i=0; i<config.numNodes; i++) {
+                    if(gameState.board[i] === 2) aiPieces.push(i);
+                }
+
+                let possibleMoves = [];
+                for(let from of aiPieces) {
+                    let adj = config.adjacencies[from] || [];
+                    for(let to of adj) {
+                        if(gameState.board[to] === 0) {
+                            possibleMoves.push({from, to});
+                        }
+                    }
+                }
+
+                if(possibleMoves.length === 0) return;
+
+                let moveMade = false;
+                // 1. Check winning move
+                for(let m of possibleMoves) {
+                    gameState.board[m.from] = 0;
+                    gameState.board[m.to] = 2;
+                    if(checkMill(m.to, 2)) {
+                        playSound('move');
+                        gameState.gameOver = true;
+                        playSound('win');
+                        moveMade = true;
+                        document.getElementById('status-message').innerText = `🎉 L'IA a gagné en alignant 3 pions !`;
+                        break;
+                    }
+                    gameState.board[m.to] = 0;
+                    gameState.board[m.from] = 2;
+                }
+
+                // 2. Otherwise pick random valid adjacent move
+                if(!moveMade) {
+                    let m = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    gameState.board[m.from] = 0;
+                    gameState.board[m.to] = 2;
+                    playSound('move');
+                    if(checkMill(m.to, 2)) {
+                        gameState.gameOver = true;
+                        playSound('win');
+                        document.getElementById('status-message').innerText = `🎉 L'IA a gagné en alignant 3 pions !`;
+                    }
+                }
+
+                if(!gameState.gameOver) {
+                    nextTurn();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
